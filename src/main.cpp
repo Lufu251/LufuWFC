@@ -1,5 +1,7 @@
 #include <raylib.h>
 
+#include <lufuWFC.hpp>
+
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -7,6 +9,7 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
+
     const int screenWidth = 800;
     const int screenHeight = 450;
 
@@ -14,6 +17,9 @@ int main(void)
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
+
+    WFC wfc;
+    wfc.loadTilesetFromFile("../../tileset.json");
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key

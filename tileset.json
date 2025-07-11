@@ -1,0 +1,32 @@
+[
+  {
+    "name": "sand",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["water", "dirt", "sand"],
+      "east" : ["water", "dirt", "sand"],
+      "south": ["water", "dirt", "sand"],
+      "west" : ["water", "dirt", "sand"]
+    }
+  },
+  {
+    "name": "water",
+    "weight": 2.0,
+    "adjacency": {
+      "north": ["sand", "water"],
+      "east" : ["sand", "water"],
+      "south": ["sand", "water"],
+      "west" : ["sand", "water"]
+    }
+  },
+  {
+    "name": "dirt",
+    "weight": 3.0,
+    "adjacency": {
+      "north": ["sand", "dirt"],
+      "east" : ["sand", "dirt"],
+      "south": ["sand", "dirt"],
+      "west" : ["sand", "dirt"]
+    }
+  }
+]
