@@ -18,8 +18,16 @@ int main(void)
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
-    WFC wfc;
-    wfc.loadTilesetFromFile("../../tileset.json");
+    lufuWFC::TileSet landTiles;
+    landTiles.loadFromFile("../../tileset.json");
+    landTiles.print();
+
+    lufuWFC::WFC wfc;
+    for(int i=0; i<32; i++){
+        std::cout << "Loop" << i << std::endl;
+        wfc.initialize(4, 4, landTiles);
+        wfc.step();
+    }
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
