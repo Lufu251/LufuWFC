@@ -23,9 +23,9 @@ int main(void)
     landTiles.print();
 
     lufuWFC::WFC wfc;
-    for(int i=0; i<32; i++){
-        std::cout << "Loop" << i << std::endl;
-        wfc.initialize(4, 4, landTiles);
+    wfc.initialize(4, 4, landTiles);
+    
+    for (int i=0; i<10; i++) {
         wfc.step();
     }
 
