@@ -179,7 +179,6 @@ namespace lufuWFC{
             // --- Observation ---
             // Find the cell with the lowest entropy > 1
             Cell* targetCell = findLowestEntropyCell();
-            std::cout << "Choosen minEntropy Cell is: " << "x: " << targetCell->x << " y: " << targetCell->y << std::endl;
 
             // Check if cell is null if true everything is collapsed
             if(targetCell == nullptr){
@@ -201,7 +200,7 @@ namespace lufuWFC{
         Grid grid;
         
         // Finds the uncollapsed cell with the fewest options.
-        Cell* findLowestEntropyCell(){
+        Cell* findLowestEntropyCell() {
             size_t minEntropy = SIZE_MAX;
             std::vector<Cell*> candidateCells;
 
@@ -233,7 +232,7 @@ namespace lufuWFC{
 
             if(candidateCells.size() > 1){
                 // Multiple lowest entropy cells pick one randomly
-                return candidateCells[generateRandomInt(candidateCells.size())];
+                return candidateCells[generateRandomInt(0, candidateCells.size() -1)];
             } else {
                 // Return the only lowest entropy cell
                 return candidateCells[0];
@@ -242,7 +241,30 @@ namespace lufuWFC{
 
         // Collapse a specific cell
         void collapseCell(size_t x, size_t y){
+            Cell& cell = grid(x,y);
 
+            // --- Random choice ---
+            std::vector<int> cumulativeWeights;
+            // Reserve space to avoid reallocations
+            cumulativeWeights.reserve(cell.possibleTiles.size());
+
+            // Calculate partial sums
+            int totalWeight = 0;
+            for (const auto& tile : cell.possibleTiles) {
+                totalWeight += mTileset.tiles[tile].weight;
+                cumulativeWeights.push_back(totalWeight);
+            } 
+
+            // Find the first element in range > randomWeight
+            auto it = std::upper_bound(cumulativeWeights.begin(), cumulativeWeights.end(), generateRandomInt(0, totalWeight-1));
+            int index = std::distance(cumulativeWeights.begin(), it);
+            int tileID = cell.possibleTiles[index];
+            
+            // Set cell state permanently
+            std::cout << "Collapsed cell x:" << x << "y: " << y <<  " New state: " << tileID << std::endl;
+            cell.possibleTiles.clear();
+            cell.possibleTiles.push_back(tileID);
+            cell.collapsed = true;
         }
 
         // Propagate the wave from a starting point
@@ -250,8 +272,8 @@ namespace lufuWFC{
 
         }
 
-        // Generate a random int from zero to n
-        size_t generateRandomInt(size_t n) {
+        // Generate a random int from zero to n -1
+        size_t generateRandomInt(size_t start, size_t end) {
             // The generator is initialized only once, on the first call
             static std::mt19937 generator = [] {
                 std::random_device rd;
@@ -260,7 +282,7 @@ namespace lufuWFC{
 
             // The distribution is created on each call, which is cheap.
             // This allows the range [0, n] to be different for each call.
-            std::uniform_int_distribution<size_t> distribution(0, n -1);
+            std::uniform_int_distribution<size_t> distribution(start, end);
 
             return distribution(generator);
         }
