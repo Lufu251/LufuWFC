@@ -2,6 +2,29 @@
 
 #include <lufuWFC.hpp>
 
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
+
+void drawGrid(const lufuWFC::Grid& grid){
+    int size = 50;
+    Color colors[10] = {RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, BROWN};
+
+    for (int x=0; x<grid.mX; x++) {
+        for (int y=0; y<grid.mY; y++) {
+            if(grid(x,y).collapsed){
+                DrawRectangle(x*size, y*size, size, size, colors[grid(x,y).possibleTiles[0]]);
+            } else {
+                DrawRectangle(x*size, y*size, size, size, BLACK);
+                std::string text;
+                for(auto& tile : grid(x,y).possibleTiles)
+                    text += std::to_string(tile).append(" ");
+
+                DrawText(text.c_str(), x*size, y*size + size/2, 5, WHITE);
+            }
+        }
+    }
+}
+
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -18,23 +41,19 @@ int main(void)
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
+    
+    lufuWFC::WFC wfc;
     lufuWFC::TileSet landTiles;
     landTiles.loadFromFile("../../tileset.json");
     landTiles.print();
-
-    lufuWFC::WFC wfc;
-    wfc.initialize(4, 4, landTiles);
-    
-    for (int i=0; i<10; i++) {
-        wfc.step();
-    }
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        // TODO: Update your variables here
+
+
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -43,7 +62,15 @@ int main(void)
 
             ClearBackground(DARKBLUE);
 
-            DrawText("Perfect! This is your first raylib window!", 190, 200, 20, LIGHTGRAY);
+            if(GuiButton({screenWidth - 130, 30, 100, 30}, "Initialize")){
+                wfc.initialize(8, 8, landTiles);
+            }
+
+            if(GuiButton({screenWidth - 130, 90, 100, 30}, "Step")){
+                wfc.step();
+            }
+
+            drawGrid(wfc.grid);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
