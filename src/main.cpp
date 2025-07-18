@@ -6,11 +6,11 @@
 #include "raygui.h"
 
 void drawGrid(const lufuWFC::Grid& grid){
-    int size = 50;
-    Color colors[10] = {RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, BROWN};
+    int size = 10;
+    Color colors[10] = {YELLOW, BLUE, BROWN, GREEN, GRAY, PURPLE, RED};
 
-    for (int x=0; x<grid.mX; x++) {
-        for (int y=0; y<grid.mY; y++) {
+    for (size_t x=0; x<grid.mX; x++) {
+        for (size_t y=0; y<grid.mY; y++) {
             if(grid(x,y).collapsed){
                 DrawRectangle(x*size, y*size, size, size, colors[grid(x,y).possibleTiles[0]]);
             } else {
@@ -19,7 +19,7 @@ void drawGrid(const lufuWFC::Grid& grid){
                 for(auto& tile : grid(x,y).possibleTiles)
                     text += std::to_string(tile).append(" ");
 
-                DrawText(text.c_str(), x*size, y*size + size/2, 5, WHITE);
+                DrawText(text.c_str(), x*size, y*size + size/2, 3, WHITE);
             }
         }
     }
@@ -33,8 +33,8 @@ int main(void)
     // Initialization
     //--------------------------------------------------------------------------------------
 
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    const int screenWidth = 900;
+    const int screenHeight = 900;
 
     InitWindow(screenWidth, screenHeight, "raylib quick start");
 
@@ -45,14 +45,12 @@ int main(void)
     lufuWFC::WFC wfc;
     lufuWFC::TileSet landTiles;
     landTiles.loadFromFile("../../tileset.json");
-    landTiles.print();
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-
 
         //----------------------------------------------------------------------------------
 
@@ -63,14 +61,18 @@ int main(void)
             ClearBackground(DARKBLUE);
 
             if(GuiButton({screenWidth - 130, 30, 100, 30}, "Initialize")){
-                wfc.initialize(8, 8, landTiles);
+                wfc.initialize(64, 64, landTiles);
             }
 
             if(GuiButton({screenWidth - 130, 90, 100, 30}, "Step")){
                 wfc.step();
             }
+            if(GuiButton({screenWidth - 130, 150, 100, 30}, "Solve")){
+                wfc.solve();
+            }
 
-            drawGrid(wfc.grid);
+            if(wfc.grid.mData.size() > 0)
+                drawGrid(wfc.grid);
 
         EndDrawing();
         //----------------------------------------------------------------------------------

@@ -3,30 +3,50 @@
     "name": "sand",
     "weight": 1.0,
     "adjacency": {
-      "north": ["water", "dirt", "sand"],
-      "east" : ["water", "dirt", "sand"],
-      "south": ["water", "dirt", "sand"],
-      "west" : ["water", "dirt", "sand"]
+      "north": ["water", "grass", "dirt"],
+      "east" : ["water", "grass", "dirt"],
+      "south": ["water", "grass", "dirt"],
+      "west" : ["water", "grass", "dirt"]
     }
   },
   {
     "name": "water",
-    "weight": 2.0,
+    "weight": 1.0,
     "adjacency": {
-      "north": ["sand", "water"],
-      "east" : ["sand", "water"],
-      "south": ["sand", "water"],
-      "west" : ["sand", "water"]
+      "north": ["sand", "mountain", "water"],
+      "east" : ["sand", "mountain", "water"],
+      "south": ["sand", "mountain", "water"],
+      "west" : ["sand", "mountain", "water"]
     }
   },
   {
     "name": "dirt",
-    "weight": 3.0,
+    "weight": 1.0,
     "adjacency": {
-      "north": ["sand", "dirt"],
-      "east" : ["sand", "dirt"],
-      "south": ["sand", "dirt"],
-      "west" : ["sand", "dirt"]
+      "north": ["sand", "grass", "mountain", "dirt"],
+      "east" : ["sand", "grass", "mountain", "dirt"],
+      "south": ["sand", "grass", "mountain", "dirt"],
+      "west" : ["sand", "grass", "mountain", "dirt"]
+    }
+  },
+  {
+    "name": "grass",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["sand", "dirt", "grass"],
+      "east" : ["sand", "dirt", "grass"],
+      "south": ["sand", "dirt", "grass"],
+      "west" : ["sand", "dirt", "grass"]
+    }
+  },
+  {
+    "name": "mountain",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["dirt", "water", "mountain"],
+      "east" : ["dirt", "water", "mountain"],
+      "south": ["dirt", "water", "mountain"],
+      "west" : ["dirt", "water", "mountain"]
     }
   }
 ]

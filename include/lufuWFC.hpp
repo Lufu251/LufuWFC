@@ -3,6 +3,8 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <queue>
+#include <set>
 #include <array>
 #include <map>
 #include <string>
@@ -41,17 +43,17 @@ namespace lufuWFC{
             }
             
             // PASS 1: Build the name-to-index map
-            std::cout << "--- Pass 1: Building name-to-index map ---\n";
+            std::cout << "  Pass 1: Building name-to-index map\n";
             for (size_t i=0; i < data.size(); i++){
                 std::string name = data[i]["name"];
 
                 // Create mapping entry
                 name_to_index_map[name] = i;
-                std::cout << "Mapped \"" << name << "\" -> " << i << "\n";
+                std::cout << "      Mapped \"" << name << "\" -> " << i << "\n";
             }
 
             // PASS 2: Build the final Tile objects using the map
-            std::cout << "--- Pass 2: Loading full tile data --\n";
+            std::cout << "  Pass 2: Loading full tile data\n\n";
             const std::vector<std::string> directions = {"north", "east", "south", "west"};
 
             for (const auto& tile_json : data) {
@@ -76,9 +78,11 @@ namespace lufuWFC{
 
                 tiles.push_back(current_tile);
             }
-            std::cout << "--- Tile loading complete ---\n\n";
+            
             std::cout << "--- Verification: Printing loaded data ---" << std::endl;
             print();
+
+            std::cout << "--- Tile loading complete ---\n\n";
         }
 
         void print() {
@@ -105,10 +109,12 @@ namespace lufuWFC{
         size_t y;
         bool collapsed;
         std::vector<int> possibleTiles;
+
+        size_t getEntropy(){ return possibleTiles.size(); }
     };
 
     struct Grid{
-        int mX, mY;
+        size_t mX, mY;
         std::vector<Cell> mData;
 
         Grid(){}
@@ -128,6 +134,10 @@ namespace lufuWFC{
             mY = y;
         }
 
+        bool isOutOfBound(const size_t& x, const size_t& y){
+            return x < 0 or x >= mX or y < 0 or y >= mY;
+        }
+
         int getX(){ return mX; }
         int getY(){ return mY; }
 
@@ -137,13 +147,25 @@ namespace lufuWFC{
         const Cell& operator()(size_t x, size_t y) const { return mData[index(x, y)]; }
     };
 
+    struct Neighbor{
+        size_t di;
+        size_t x;
+        size_t y;
+        Neighbor(const size_t xPos, const size_t yPos, const size_t directionIndex): di(directionIndex), x(xPos), y(yPos){}
+    };
+
     class WFC{
     public:
+        Grid grid;
 
         WFC(){}
         ~WFC(){}
 
         void initialize(int width, int height, TileSet& tileset){
+            std::cout << "\n--- Initialize WFC ---" << std::endl;
+            // Set stepCount to zero
+            stepCount = 0;
+
             // Set tileset
             mTileset = tileset;
 
@@ -171,33 +193,53 @@ namespace lufuWFC{
             }
         }
 
+        // Solve the grid -1 means fully solve
+        void solve(){
+            while (!mCollapsed) {
+                step();
+            }
+        }
+
         // This function performs one "Observe & Propagate" cycle.
         void step(){
+            std::cout << "--- Step " << stepCount << " ---" << std::endl;
+            stepCount ++;
+
             // If already done, do nothing
-            if(mCollapsed) return;
+            if(mCollapsed){ std::cout << "Nothing to do" << std::endl;return;}
 
             // --- Observation ---
             // Find the cell with the lowest entropy > 1
             Cell* targetCell = findLowestEntropyCell();
-
+            
             // Check if cell is null if true everything is collapsed
             if(targetCell == nullptr){
                 mCollapsed = true;
                 std::cout << "WFC complete" << std::endl;
                 return;
             }
+            std::cout << "- Observe\n";
+            std::cout << "  Cell x:" << targetCell->x << " y:" << targetCell->y << std::endl;
 
             // --- Collapse ---
+            std::cout << "- Collapse\n";
+            std::string before = "";
+            for(auto& tile : targetCell->possibleTiles)
+                before += std::to_string(tile);
+
             collapseCell(targetCell->x, targetCell->y);
+            std::cout << "  Old:" << before << " New:" << targetCell->possibleTiles[0] << std::endl;
 
             // --- Propagation ---
+            std::cout << "- Propagate\n";
             propagate(targetCell->x, targetCell->y);
         }
 
     private:
+        int stepCount;
         bool mCollapsed;
         TileSet mTileset;
-        Grid grid;
+        std::array<std::pair<int, int>, 4> directions = {{{0,-1}, {1,0}, {0,1}, {-1,0}}};
         
         // Finds the uncollapsed cell with the fewest options.
         Cell* findLowestEntropyCell() {
@@ -209,16 +251,15 @@ namespace lufuWFC{
 
                 // Skip if cell is collapsed
                 if(cell.collapsed){
-                    std::cout << "Cell collapsed" << std::endl;
                     continue;
                 }
                 
-                if(cell.possibleTiles.size() < minEntropy){
+                if(cell.getEntropy() < minEntropy){
                     // Found new minimum, discard previous results and add cell
-                    minEntropy = cell.possibleTiles.size();
+                    minEntropy = cell.getEntropy();
                     candidateCells.clear();
                     candidateCells.push_back(&cell);
-                } else if (cell.possibleTiles.size() == minEntropy) {
+                } else if (cell.getEntropy() == minEntropy) {
                     // Same minimum add to candidateCells
                     candidateCells.push_back(&cell);
                 }
@@ -261,7 +302,6 @@ namespace lufuWFC{
             int tileID = cell.possibleTiles[index];
             
             // Set cell state permanently
-            std::cout << "Collapsed cell x:" << x << "y: " << y <<  " New state: " << tileID << std::endl;
             cell.possibleTiles.clear();
             cell.possibleTiles.push_back(tileID);
             cell.collapsed = true;
@@ -269,9 +309,53 @@ namespace lufuWFC{
 
         // Propagate the wave from a starting point
         void propagate(size_t x, size_t y){
+            // Use a stack to keep track of cells whose possibilities have been reduced.
+            // Start with the cell that just collapsed.
+            std::queue<std::pair<int, int>> queue;
+            queue.push({x,y});
 
+            int count = 0;
+            while (!queue.empty()) {
+                std::pair<int, int> pos = queue.front();
+                Cell& currentCell = grid(pos.first, pos.second);
+                queue.pop();
+                
+                
+                // Get all valid neighbors (up, right, down, left)
+                for(auto neighborPos : getNeighbors(currentCell.x, currentCell.y)){
+                    Cell& neighborCell = grid(neighborPos.x, neighborPos.y);
+                    std::cout << "  Cell " << count << " / x:" << neighborCell.x << " y:" << neighborCell.y << std::endl;
+                    count ++;
+
+                    // Get the list of tiles in the neighbor that are still possible
+                    std::set<int> validTiles = getValidTilesInDirection(currentCell, neighborPos.di);
+                    std::vector<int> newTiles = getIntersectingTiles(neighborCell, validTiles);
+
+                    std::string o, n;
+                    for(auto& tile : neighborCell.possibleTiles)
+                        o += std::to_string(tile);
+                    for(auto& tile : newTiles)
+                        n += std::to_string(tile);
+                    
+
+                    // If the state of the neighbor will be changed
+                    if(neighborCell.possibleTiles.size() != newTiles.size()){
+                        // Update the neighbor's state
+                        std::cout << "      Add Old:" << o << " New:" << n << std::endl;
+                        neighborCell.possibleTiles = newTiles;
+
+                        // If the cell has 0 possibilities, we have a contradiction!
+                        if(neighborCell.possibleTiles.size() == 0)
+                            std::cerr << "No Possible Tiles! Generation failed" <<std::endl;
+
+                        // Add this neighbor to the queue
+                        queue.push({neighborPos.x, neighborPos.y});
+                    }
+                }
+            }
         }
 
+        //---------------- Helpers ----------------
         // Generate a random int from zero to n -1
         size_t generateRandomInt(size_t start, size_t end) {
             // The generator is initialized only once, on the first call
@@ -287,5 +371,44 @@ namespace lufuWFC{
             return distribution(generator);
         }
 
+        // Get all neighbors
+        std::vector<Neighbor> getNeighbors(int x, int y){
+            // Vector that will contain all valid neighbors
+            std::vector<Neighbor> neighbors;
+            
+            for(size_t i=0; i < directions.size(); i++){
+                int nX = x + directions[i].first, nY = y + directions[i].second;
+
+                if(grid.isOutOfBound(nX, nY)) continue; // Skip if cell is out of bound
+                if(grid(nX,nY).collapsed) continue; // Skip if cell is collapse
+
+                neighbors.push_back(Neighbor(nX, nY, i));
+            }
+            
+            return neighbors;
+        }
+
+        std::set<int> getValidTilesInDirection(Cell& cell, size_t direction){
+            std::set<int> validTiles;
+
+            // Add all rules from every possibleTile from the cell in the direction together
+            for(auto& tile : cell.possibleTiles){
+                for(auto& rule : mTileset.tiles[tile].adjacency[direction]){
+                    validTiles.insert(rule);
+                }
+            }
+
+            return validTiles;
+        }
+
+        std::vector<int> getIntersectingTiles(Cell& cell, std::set<int>& validTiles){
+            std::vector<int> intersections;
+            for(auto& neighborTile : cell.possibleTiles){
+                if(validTiles.count(neighborTile)){
+                    intersections.push_back(neighborTile);
+                }
+            }
+            return intersections;
+        }
     };
 }
