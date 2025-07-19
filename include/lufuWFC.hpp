@@ -161,7 +161,7 @@ namespace lufuWFC{
         WFC(){}
         ~WFC(){}
 
-        void initialize(int width, int height, TileSet& tileset){
+        void initialize(int width, int height, int seed, TileSet& tileset){
             std::cout << "\n--- Initialize WFC ---" << std::endl;
             // Set stepCount to zero
             stepCount = 0;
@@ -171,6 +171,13 @@ namespace lufuWFC{
 
             // Is not collapsed
             mCollapsed = false;
+
+            // Random generator
+            if(seed >= 0){
+                gen = std::mt19937(seed);
+            } else {
+                gen = std::mt19937(rd());
+            }
 
             // Create template vector with all tiles
             std::vector<int> templateTiles;
@@ -236,6 +243,9 @@ namespace lufuWFC{
         }
 
     private:
+        std::mt19937 gen;
+        std::random_device rd;
+
         int stepCount;
         bool mCollapsed;
         TileSet mTileset;
@@ -358,17 +368,11 @@ namespace lufuWFC{
         //---------------- Helpers ----------------
         // Generate a random int from zero to n -1
         size_t generateRandomInt(size_t start, size_t end) {
-            // The generator is initialized only once, on the first call
-            static std::mt19937 generator = [] {
-                std::random_device rd;
-                return std::mt19937(rd());
-            }();
-
             // The distribution is created on each call, which is cheap.
             // This allows the range [0, n] to be different for each call.
             std::uniform_int_distribution<size_t> distribution(start, end);
 
-            return distribution(generator);
+            return distribution(gen);
         }
 
         // Get all neighbors

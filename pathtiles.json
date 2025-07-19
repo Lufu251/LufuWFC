@@ -1,0 +1,72 @@
+[
+  {
+    "name": "spacer",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["spacer", "streetRightLeft", "streetUpRight", "streetLeftUp"],
+      "east" : ["spacer", "streetUpDown", "streetUpRight", "streetRightDown"],
+      "south": ["spacer", "streetRightLeft", "streetRightDown", "streetDownLeft"],
+      "west" : ["spacer", "streetUpDown", "streetDownLeft", "streetLeftUp"]
+    }
+  },
+  {
+    "name": "streetUpDown",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["streetUpDown", "streetRightDown", "streetDownLeft"],
+      "east" : ["spacer"],
+      "south": ["streetUpDown", "streetUpRight", "streetLeftUp"],
+      "west" : ["spacer"]
+    }
+  },
+  {
+    "name": "streetRightLeft",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["spacer"],
+      "east" : ["streetRightLeft", "streetDownLeft", "streetLeftUp"],
+      "south": ["spacer"],
+      "west" : ["streetRightLeft", "streetUpRight", "streetRightDown"]
+    }
+  },
+  {
+    "name": "streetUpRight",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["streetUpDown", "streetDownLeft"],
+      "east" : ["streetRightLeft", "streetDownLeft"],
+      "south": ["spacer"],
+      "west" : ["spacer"]
+    }
+  },
+  {
+    "name": "streetRightDown",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["spacer"],
+      "east" : ["streetRightLeft", "streetLeftUp"],
+      "south": ["streetUpDown", "streetLeftUp"],
+      "west" : ["spacer"]
+    }
+  },
+  {
+    "name": "streetDownLeft",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["spacer"],
+      "east" : ["spacer"],
+      "south": ["streetUpDown", "streetUpRight"],
+      "west" : ["streetRightLeft", "streetUpRight"]
+    }
+  },
+  {
+    "name": "streetLeftUp",
+    "weight": 1.0,
+    "adjacency": {
+      "north": ["streetUpDown", "streetRightDown"],
+      "east" : ["spacer"],
+      "south": ["spacer"],
+      "west" : ["streetRightLeft", "streetRightDown"]
+    }
+  }
+]
