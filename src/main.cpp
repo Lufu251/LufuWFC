@@ -3,7 +3,7 @@
 #include <lufuWFC.hpp>
 
 #define RAYGUI_IMPLEMENTATION
-#include <raygui.h>
+#include "raygui.h"
 
 void drawGridLandTiles(const lufuWFC::Grid& grid){
     int size = 10;
@@ -96,6 +96,9 @@ int main(void)
     lufuWFC::TileSet landTiles;
     landTiles.loadFromFile("../../pathtiles.json");
 
+    bool valueMode = false;
+    int valueValue = 0;
+
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
@@ -110,19 +113,27 @@ int main(void)
 
             ClearBackground(DARKBLUE);
 
-            if(GuiButton({screenWidth - 130, 30, 100, 30}, "Initialize")){
+            if(wfc.grid.mData.size() > 0)
+                drawGridStreet(wfc.grid);
+
+            DrawRectangleRec({screenWidth - 140, 0, 140, screenHeight}, {200,190,200, 200});
+            if(GuiButton({screenWidth - 120, 30, 100, 30}, "Initialize")){
                 wfc.initialize(48, 48, 1, landTiles);
             }
 
-            if(GuiButton({screenWidth - 130, 70, 100, 30}, "Step")){
-                wfc.step();
-            }
-            if(GuiButton({screenWidth - 130, 110, 100, 30}, "Solve")){
-                wfc.solve();
+            if(GuiButton({screenWidth - 120, 70, 100, 30}, "Step")){
+                for (int i=0; i<valueValue; i++) {
+                    wfc.step();
+                }
             }
 
-            if(wfc.grid.mData.size() > 0)
-                drawGridStreet(wfc.grid);
+            if(GuiValueBox({screenWidth - 120, 100, 100, 30}, "", &valueValue, 1, 1000, valueMode)){
+                valueMode = !valueMode;
+            }
+
+            if(GuiButton({screenWidth - 120, 140, 100, 30}, "Solve")){
+                wfc.solve();
+            }
 
         EndDrawing();
         //----------------------------------------------------------------------------------

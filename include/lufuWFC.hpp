@@ -169,8 +169,9 @@ namespace lufuWFC{
             // Set tileset
             mTileset = tileset;
 
-            // Is not collapsed
+            // Is not collapsed and no error
             mCollapsed = false;
+            mError = false;
 
             // Random generator
             if(seed >= 0){
@@ -202,7 +203,7 @@ namespace lufuWFC{
 
         // Solve the grid -1 means fully solve
         void solve(){
-            while (!mCollapsed) {
+            while (!mCollapsed && !mError) {
                 step();
             }
         }
@@ -247,7 +248,8 @@ namespace lufuWFC{
         std::random_device rd;
 
         int stepCount;
-        bool mCollapsed;
+        bool mCollapsed = false;
+        bool mError = false;
         TileSet mTileset;
         std::array<std::pair<int, int>, 4> directions = {{{0,-1}, {1,0}, {0,1}, {-1,0}}};
         
@@ -350,13 +352,15 @@ namespace lufuWFC{
 
                     // If the state of the neighbor will be changed
                     if(neighborCell.possibleTiles.size() != newTiles.size()){
+                        // If the cell has 0 possibilities, we have a contradiction!
+                        if(newTiles.size() == 0){
+                            std::cerr << "No Possible Tiles! Generation failed" <<std::endl;
+                            mError = true;
+                            return;
+                        }
                         // Update the neighbor's state
                         std::cout << "      Add Old:" << o << " New:" << n << std::endl;
                         neighborCell.possibleTiles = newTiles;
-
-                        // If the cell has 0 possibilities, we have a contradiction!
-                        if(neighborCell.possibleTiles.size() == 0)
-                            std::cerr << "No Possible Tiles! Generation failed" <<std::endl;
 
                         // Add this neighbor to the queue
                         queue.push({neighborPos.x, neighborPos.y});
