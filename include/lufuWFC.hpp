@@ -83,7 +83,7 @@ namespace lufuWFC{
             std::cout << "--- Verification: Printing loaded data ---" << std::endl;
             print();
 
-            std::cout << "--- Tile loading complete ---\n\n";
+            std::cout << "--- Tile loading complete ---" << std::endl;
         }
 
         void print() {
@@ -203,27 +203,34 @@ namespace lufuWFC{
             }
         }
 
-        // Solve the grid for n steps -1 means solve until done
+        // Solve the grid for n steps and do a maximum of n backtracks; count -1 = solve until done; backtrack 0 = no backtracking
         void solve(int count, int backtrack){
+            std::cout << "- WFC start" << std::endl;
+            Grid last;
             while (count > 0 || count == -1) {
-                Grid last;
+                if(backtrack > 0){
+                    last = grid;
+                }
 
-                // Done set count to zero to end
+                // If already done, do nothing
                 if(mCollapsed){
                     count = 0;
+                    std::cout << "  Nothing to do" << std::endl;
+                    return;
                 }
 
                 // Error occured do something
                 if(mError){
-                    if(backtrack == true){
+                    if(backtrack > 0){
                         // Go back to last state and try again
                         mError = false;
                         grid = last;
                         backtrack --;
+                        std::cout << "  No Possible Tiles! Backtracking!" <<std::endl;
                     } else {
                         // End
                         count = 0;
-                        std::cout << "Unsolvable backtrack count zero" << std::endl;
+                        std::cout << "  Unsolvable state" << std::endl;
                     }
                 } else {
                     // Step
@@ -240,12 +247,9 @@ namespace lufuWFC{
         // Place and propagate one tile manually
         void manualSetCell(size_t x, size_t y, std::string tileName){
 
-            if(grid(x,y).collapsed){ std::cout << "Cell is already collapsed. Can't manually set cell" << std::endl; return; }
+            if(grid(x,y).collapsed){ std::cout << "  Cell is already collapsed. Can't manually set cell" << std::endl; return; }
 
-            // If already done, do nothing
-            if(mCollapsed){ std::cout << "Nothing to do" << std::endl; return;}
-
-            // --- Observation ---d
+            // --- Observation ---
             // Find the cell with the lowest entropy > 1
             Cell* targetCell = &grid(x,y);
 
@@ -270,11 +274,6 @@ namespace lufuWFC{
         
         // This function performs one "Observe & Propagate" cycle.
         void step(){
-            std::cout << "--- Step " << stepCount << " ---" << std::endl;
-            stepCount ++;
-
-            // If already done, do nothing
-            if(mCollapsed){ std::cout << "Nothing to do" << std::endl;return;}
 
             // --- Observation ---
             // Find the cell with the lowest entropy > 1
@@ -283,23 +282,14 @@ namespace lufuWFC{
             // Check if cell is null if true everything is collapsed
             if(targetCell == nullptr){
                 mCollapsed = true;
-                std::cout << "WFC complete" << std::endl;
+                std::cout << "- WFC complete" << std::endl;
                 return;
             }
-            std::cout << "- Observe\n";
-            std::cout << "  Cell x:" << targetCell->x << " y:" << targetCell->y << std::endl;
-
+            
             // --- Collapse ---
-            std::cout << "- Collapse\n";
-            std::string before = "";
-            for(auto& tile : targetCell->possibleTiles)
-                before += std::to_string(tile);
-
             collapseCell(targetCell->x, targetCell->y);
-            std::cout << "  Old:" << before << " New:" << targetCell->possibleTiles[0] << std::endl;
 
             // --- Propagation ---
-            std::cout << "- Propagate\n";
             propagate(targetCell->x, targetCell->y);
         }
 
@@ -376,18 +366,14 @@ namespace lufuWFC{
             std::queue<std::pair<int, int>> queue;
             queue.push({x,y});
 
-            int count = 0;
             while (!queue.empty()) {
                 std::pair<int, int> pos = queue.front();
                 Cell& currentCell = grid(pos.first, pos.second);
                 queue.pop();
                 
-                
                 // Get all valid neighbors (up, right, down, left)
                 for(auto neighborPos : getNeighbors(currentCell.x, currentCell.y)){
                     Cell& neighborCell = grid(neighborPos.x, neighborPos.y);
-                    std::cout << "  Cell " << count << " / x:" << neighborCell.x << " y:" << neighborCell.y << std::endl;
-                    count ++;
 
                     // Get the list of tiles in the neighbor that are still possible
                     std::set<int> validTiles = getValidTilesInDirection(currentCell, neighborPos.di);
@@ -404,12 +390,10 @@ namespace lufuWFC{
                     if(neighborCell.possibleTiles.size() != newTiles.size()){
                         // If the cell has 0 possibilities, we have a contradiction!
                         if(newTiles.size() == 0){
-                            std::cerr << "No Possible Tiles! Generation failed" <<std::endl;
                             mError = true;
                             return;
                         }
                         // Update the neighbor's state
-                        std::cout << "      Add Old:" << o << " New:" << n << std::endl;
                         neighborCell.possibleTiles = newTiles;
 
                         // Add this neighbor to the queue

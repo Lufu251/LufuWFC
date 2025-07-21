@@ -3,7 +3,7 @@
 #include <lufuWFC.hpp>
 
 #define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
+#include <raygui.h>
 
 void drawGridLandTiles(const lufuWFC::Grid& grid){
     int size = 15;
@@ -16,14 +16,14 @@ void drawGridLandTiles(const lufuWFC::Grid& grid){
             } else {
                 DrawRectangle(x*size, y*size, size, size, BLACK);
                 std::string text = std::to_string(grid(x,y).possibleTiles.size());
-                
+
                 DrawText(text.c_str(), x*size, y*size + size/2, 3, WHITE);
             }
         }
     }
 }
 
-void drawGridStreet(const lufuWFC::Grid& grid){
+void drawGridPathTiles(const lufuWFC::Grid& grid){
     int size = 15;
 
     for (size_t x=0; x<grid.mX; x++) {
@@ -90,7 +90,7 @@ int main(void)
     
     lufuWFC::WFC wfc;
     lufuWFC::TileSet tileset;
-    tileset.loadFromFile("../../examples/landstiles.json");
+    tileset.loadFromFile("../../examples/pathtiles.json");
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -107,12 +107,12 @@ int main(void)
             ClearBackground(DARKBLUE);
 
             if(wfc.grid.mData.size() > 0){
-                drawGridLandTiles(wfc.grid);
+                drawGridPathTiles(wfc.grid);
             }
 
             DrawRectangleRec({screenWidth - 140, 0, 140, screenHeight}, {200,190,200, 200});
             if(GuiButton({screenWidth - 120, 30, 100, 30}, "Initialize")){
-                wfc.initialize(48, 48, -1, tileset);
+                wfc.initialize(48, 48, 4, tileset);
                 /*for(int x=0; x < wfc.grid.getX(); x++){
                     for(int y=0; y < wfc.grid.getY(); y++){
                         if(x == 0){
@@ -135,7 +135,7 @@ int main(void)
             }
 
             if(GuiButton({screenWidth - 120, 70, 100, 30}, "Solve")){
-                wfc.solve(-1, 10);
+                wfc.solve(-1, 5);
             }
 
         EndDrawing();
