@@ -1,7 +1,7 @@
 [
   {
     "name": "spacer",
-    "weight": 1.0,
+    "weight": 2000.0,
     "adjacency": {
       "north": ["spacer", "streetRightLeft", "streetUpRight", "streetLeftUp"],
       "east" : ["spacer", "streetUpDown", "streetUpRight", "streetRightDown"],

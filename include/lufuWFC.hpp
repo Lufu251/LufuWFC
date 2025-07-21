@@ -162,7 +162,7 @@ namespace lufuWFC{
         WFC(){}
         ~WFC(){}
 
-        // Initialize grid width, height, seed and tileset. Seed 0 is a random seed
+        // Initialize grid width, height, seed and tileset. Seed -1 is a random seed
         void initialize(int width, int height, int seed, TileSet& tileset){
             std::cout << "\n--- Initialize WFC ---" << std::endl;
             // Set stepCount to zero
@@ -266,7 +266,6 @@ namespace lufuWFC{
         bool mCollapsed = false;
         bool mError = false;
         TileSet mTileset;
-        // 0: North (Y-1), 1: East (X+1), 2: South (Y+1), 3: West (X-1)
         std::array<std::pair<int, int>, 4> directions = {{{0,-1}, {1,0}, {0,1}, {-1,0}}};
         
         // This function performs one "Observe & Propagate" cycle.
@@ -447,6 +446,7 @@ namespace lufuWFC{
             return neighbors;
         }
 
+        // Get all valid tiles from a cell in the specified directions
         std::set<int> getValidTilesInDirection(Cell& cell, size_t direction){
             std::set<int> validTiles;
 
@@ -460,6 +460,7 @@ namespace lufuWFC{
             return validTiles;
         }
 
+        // Return intersecting tiles from a cell and tiles vector
         std::vector<int> getIntersectingTiles(Cell& cell, std::set<int>& validTiles){
             std::vector<int> intersections;
             for(auto& neighborTile : cell.possibleTiles){
