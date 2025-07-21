@@ -65,9 +65,7 @@ void drawGridStreet(const lufuWFC::Grid& grid){
                 }
             } else {
                 DrawRectangle(x*size, y*size, size, size, BLACK);
-                std::string text;
-                for(auto& tile : grid(x,y).possibleTiles)
-                    text += std::to_string(tile).append(" ");
+                std::string text = std::to_string(grid(x,y).possibleTiles.size());
 
                 DrawText(text.c_str(), x*size, y*size + size/2, 3, WHITE);
             }
@@ -94,7 +92,7 @@ int main(void)
     
     lufuWFC::WFC wfc;
     lufuWFC::TileSet landTiles;
-    landTiles.loadFromFile("../../pathtiles.json");
+    landTiles.loadFromFile("../../examples/pathtiles.json");
 
     bool valueMode = false;
     int valueValue = 0;
@@ -119,12 +117,31 @@ int main(void)
             DrawRectangleRec({screenWidth - 140, 0, 140, screenHeight}, {200,190,200, 200});
             if(GuiButton({screenWidth - 120, 30, 100, 30}, "Initialize")){
                 wfc.initialize(48, 48, 1, landTiles);
+                
+                for (int x=0; x<wfc.grid.getX(); x++) {
+                    for (int y=0; y<wfc.grid.getY(); y++) {
+                        //TOP Row
+                        if(y == 0){
+                            wfc.manualSetCell(x, y, "space");
+                        }
+                        if(y == 47){
+                            wfc.manualSetCell(x, y, "space");
+                        }
+                        if(x == 0){
+                            wfc.manualSetCell(x, y, "space");
+                        }
+                        if(x == 47){
+                            wfc.manualSetCell(x, y, "space");
+                        }
+                    }
+                }
+
+                wfc.manualSetCell(24, 0, "streetUpDown");
+                wfc.manualSetCell(24, 47, "streetUpDown");
             }
 
             if(GuiButton({screenWidth - 120, 70, 100, 30}, "Step")){
-                for (int i=0; i<valueValue; i++) {
-                    wfc.step();
-                }
+                wfc.solve(valueValue, 5);
             }
 
             if(GuiValueBox({screenWidth - 120, 100, 100, 30}, "", &valueValue, 1, 1000, valueMode)){
@@ -132,7 +149,7 @@ int main(void)
             }
 
             if(GuiButton({screenWidth - 120, 140, 100, 30}, "Solve")){
-                wfc.solve();
+                wfc.solve(-1, 10);
             }
 
         EndDrawing();

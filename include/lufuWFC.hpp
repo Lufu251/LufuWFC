@@ -1,12 +1,13 @@
 #pragma once
 
-#include <iostream>
-#include <random>
 #include <vector>
 #include <queue>
 #include <set>
 #include <array>
 #include <map>
+
+#include <iostream>
+#include <random>
 #include <string>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -161,6 +162,7 @@ namespace lufuWFC{
         WFC(){}
         ~WFC(){}
 
+        // Initialize grid width, height, seed and tileset. Seed 0 is a random seed
         void initialize(int width, int height, int seed, TileSet& tileset){
             std::cout << "\n--- Initialize WFC ---" << std::endl;
             // Set stepCount to zero
@@ -201,13 +203,72 @@ namespace lufuWFC{
             }
         }
 
-        // Solve the grid -1 means fully solve
-        void solve(){
-            while (!mCollapsed && !mError) {
-                step();
+        // Solve the grid for n steps -1 means solve until done
+        void solve(int count, int backtrack){
+            while (count > 0 || count == -1) {
+                Grid last;
+
+                // Done set count to zero to end
+                if(mCollapsed){
+                    count = 0;
+                }
+
+                // Error occured do something
+                if(mError){
+                    if(backtrack == true){
+                        // Go back to last state and try again
+                        mError = false;
+                        grid = last;
+                        backtrack --;
+                    } else {
+                        // End
+                        count = 0;
+                        std::cout << "Unsolvable backtrack count zero" << std::endl;
+                    }
+                } else {
+                    // Step
+                    step();
+                }
+
+                // Reduce count
+                if(count > 0){
+                    count --;
+                }
             }
         }
 
+        // Place and propagate one tile manually
+        void manualSetCell(size_t x, size_t y, std::string tileName){
+
+            if(grid(x,y).collapsed){ std::cout << "Cell is already collapsed. Can't manually set cell" << std::endl; return; }
+
+            // If already done, do nothing
+            if(mCollapsed){ std::cout << "Nothing to do" << std::endl; return;}
+
+            // --- Observation ---d
+            // Find the cell with the lowest entropy > 1
+            Cell* targetCell = &grid(x,y);
+
+            // --- Collapse ---
+            grid(x,y).possibleTiles.clear();
+            grid(x,y).possibleTiles.push_back(mTileset.name_to_index_map[tileName]);
+            grid(x,y).collapsed = true;
+
+            // --- Propagation ---
+            propagate(targetCell->x, targetCell->y);
+        }
+
+    private:
+        std::mt19937 gen;
+        std::random_device rd;
+
+        int stepCount;
+        bool mCollapsed = false;
+        bool mError = false;
+        TileSet mTileset;
+        // 0: North (Y-1), 1: East (X+1), 2: South (Y+1), 3: West (X-1)
+        std::array<std::pair<int, int>, 4> directions = {{{0,-1}, {1,0}, {0,1}, {-1,0}}};
+        
         // This function performs one "Observe & Propagate" cycle.
         void step(){
             std::cout << "--- Step " << stepCount << " ---" << std::endl;
@@ -243,16 +304,6 @@ namespace lufuWFC{
             propagate(targetCell->x, targetCell->y);
         }
 
-    private:
-        std::mt19937 gen;
-        std::random_device rd;
-
-        int stepCount;
-        bool mCollapsed = false;
-        bool mError = false;
-        TileSet mTileset;
-        std::array<std::pair<int, int>, 4> directions = {{{0,-1}, {1,0}, {0,1}, {-1,0}}};
-        
         // Finds the uncollapsed cell with the fewest options.
         Cell* findLowestEntropyCell() {
             size_t minEntropy = SIZE_MAX;
