@@ -155,9 +155,28 @@ namespace lufuWFC{
         Neighbor(const size_t xPos, const size_t yPos, const size_t directionIndex): di(directionIndex), x(xPos), y(yPos){}
     };
 
+    struct BackTracker{
+        std::vector<Cell> changedCells;
+
+        void reset(){
+            changedCells.clear();
+        }
+
+        void saveChange(Cell& changedCell){
+            changedCells.push_back(changedCell);
+        }
+
+        void revert(Grid& grid){
+            for (const auto& cell : changedCells) {
+                grid(cell.x, cell.y) = cell;
+            }
+        }
+    };
+
     class WFC{
     public:
         Grid grid;
+        BackTracker tracker;
 
         WFC(){}
         ~WFC(){}
@@ -205,12 +224,11 @@ namespace lufuWFC{
 
         // Solve the grid for n steps and do a maximum of n backtracks; count -1 = solve until done; backtrack 0 = no backtracking
         void solve(int count, int backtrack){
-            std::cout << "- WFC start" << std::endl;
-            Grid last;
+            std::cout << "- Solve" << std::endl;
+
             while (count > 0 || count == -1) {
-                if(backtrack > 0){
-                    last = grid;
-                }
+                // Reset Backtracker
+                tracker.reset();
 
                 // If already done, do nothing
                 if(mCollapsed){
@@ -218,27 +236,27 @@ namespace lufuWFC{
                     std::cout << "  Nothing to do" << std::endl;
                     return;
                 }
-
-                // Error occured do something
+                
+                // If error occured, try backtracking or end 
                 if(mError){
                     if(backtrack > 0){
                         // Go back to last state and try again
+                        tracker.revert(grid);
+
                         mError = false;
-                        grid = last;
                         backtrack --;
                         std::cout << "  No Possible Tiles! Backtracking!" <<std::endl;
                     } else {
                         // End
                         count = 0;
                         std::cout << "  Unsolvable state" << std::endl;
+                        return;
                     }
-                } else {
-                    // Step
-                    step();
                 }
 
-                // Reduce count
-                if(count > 0){
+                // Do one step and reduce count
+                step();
+                if (count > 0) {
                     count --;
                 }
             }
@@ -253,6 +271,9 @@ namespace lufuWFC{
             // Find the cell with the lowest entropy > 1
             Cell* targetCell = &grid(x,y);
 
+            // Save cell state
+            tracker.saveChange(grid(targetCell->x, targetCell->y));
+            
             // --- Collapse ---
             grid(x,y).possibleTiles.clear();
             grid(x,y).possibleTiles.push_back(mTileset.name_to_index_map[tileName]);
@@ -286,6 +307,9 @@ namespace lufuWFC{
                 return;
             }
             
+            // Save cell state
+            tracker.saveChange(grid(targetCell->x, targetCell->y));
+
             // --- Collapse ---
             collapseCell(targetCell->x, targetCell->y);
 
@@ -379,15 +403,11 @@ namespace lufuWFC{
                     std::set<int> validTiles = getValidTilesInDirection(currentCell, neighborPos.di);
                     std::vector<int> newTiles = getIntersectingTiles(neighborCell, validTiles);
 
-                    std::string o, n;
-                    for(auto& tile : neighborCell.possibleTiles)
-                        o += std::to_string(tile);
-                    for(auto& tile : newTiles)
-                        n += std::to_string(tile);
-                    
-
                     // If the state of the neighbor will be changed
-                    if(neighborCell.possibleTiles.size() != newTiles.size()){
+                    if(neighborCell.possibleTiles.size() != newTiles.size()) {
+                        // Save the state of the cell
+                        tracker.saveChange(neighborCell);
+
                         // If the cell has 0 possibilities, we have a contradiction!
                         if(newTiles.size() == 0){
                             mError = true;

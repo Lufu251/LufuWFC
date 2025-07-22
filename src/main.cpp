@@ -112,30 +112,18 @@ int main(void)
 
             DrawRectangleRec({screenWidth - 140, 0, 140, screenHeight}, {200,190,200, 200});
             if(GuiButton({screenWidth - 120, 30, 100, 30}, "Initialize")){
-                wfc.initialize(48, 48, 4, tileset);
-                /*for(int x=0; x < wfc.grid.getX(); x++){
-                    for(int y=0; y < wfc.grid.getY(); y++){
-                        if(x == 0){
-                            wfc.manualSetCell(x, y, "spacer");
-                        }
-                        if(x == 47){
-                            wfc.manualSetCell(x, y, "spacer");
-                        }
-                        if(y == 0 && x != 24){
-                            wfc.manualSetCell(x, y, "spacer");
-                        }
-                        if(y == 47 && x != 24){
-                            wfc.manualSetCell(x, y, "spacer");
-                        }
-                        wfc.manualSetCell(24, 0, "streetUpDown");
-                        wfc.manualSetCell(24,47, "streetUpDown");
-                        wfc.manualSetCell(3, 24, "streetUpDown");
-                    }
-                }*/
+                wfc.initialize(48, 48, 1, tileset);
             }
 
             if(GuiButton({screenWidth - 120, 70, 100, 30}, "Solve")){
-                wfc.solve(-1, 5);
+                wfc.solve(-1, 10);
+            }
+
+            if(GuiButton({screenWidth - 120, 110, 100, 30}, "Step")){
+                wfc.solve(1, 10);
+            }
+            if(GuiButton({screenWidth - 120, 150, 100, 30}, "Backtrack")){
+                wfc.tracker.revert(wfc.grid);
             }
 
         EndDrawing();
