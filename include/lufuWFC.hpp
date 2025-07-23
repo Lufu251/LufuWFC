@@ -366,7 +366,7 @@ namespace lufuWFC{
         void collapseCell(size_t x, size_t y){
             Cell& cell = grid(x,y);
 
-            // --- Random choice ---
+            // Random choice
             std::vector<int> cumulativeWeights;
             // Reserve space to avoid reallocations
             cumulativeWeights.reserve(cell.possibleTiles.size());
