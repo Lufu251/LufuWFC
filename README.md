@@ -13,6 +13,9 @@ This is my own implementation of the WaveFunctionCollapse Alogrithm
 * **Backtracking:** The WFC will try to automatically correct unsolvable states
 
 ## Notes
+### TODO
+* I want to add the extraction of tileset from a grid or png
+
 ### Analogy: Quantum Mechanics
 
 Imagine every single cell in your final output grid is in a state of superposition. This means it hasn't decided what it is yet. it is simultaneously all possible tiles at once.

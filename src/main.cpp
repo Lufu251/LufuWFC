@@ -1,7 +1,6 @@
 #include <raylib.h>
 
 #include <lufuWFC.hpp>
-#include <chrono>
 
 #define RAYGUI_IMPLEMENTATION
 #include <raygui.h>
