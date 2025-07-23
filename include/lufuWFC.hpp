@@ -181,6 +181,11 @@ namespace lufuWFC{
         WFC(){}
         ~WFC(){}
 
+        // Returns true if wfc generation failed
+        bool failed(){
+            return mError;
+        }
+
         // Initialize grid width, height, seed and tileset. Seed -1 is a random seed
         void initialize(int width, int height, int seed, TileSet& tileset){
             std::cout << "\n--- Initialize WFC ---" << std::endl;
@@ -223,10 +228,10 @@ namespace lufuWFC{
         }
 
         // Solve the grid for n steps and do a maximum of n backtracks; count -1 = solve until done; backtrack 0 = no backtracking
-        void solve(int count, int backtrack){
+        bool solve(int count, int backtrack){
             std::cout << "- Solve" << std::endl;
 
-            while (count > 0 || count == -1) {
+            while (count != 0) {
                 // Reset Backtracker
                 tracker.reset();
 
@@ -234,10 +239,16 @@ namespace lufuWFC{
                 if(mCollapsed){
                     count = 0;
                     std::cout << "  Nothing to do" << std::endl;
-                    return;
+                    break;
+                }
+
+                // Do one step and reduce count
+                step();
+                if (count > 0) {
+                    count --;
                 }
                 
-                // If error occured, try backtracking or end 
+                // Check if an error occured and try backtracking or end solve
                 if(mError){
                     if(backtrack > 0){
                         // Go back to last state and try again
@@ -248,18 +259,13 @@ namespace lufuWFC{
                         std::cout << "  No Possible Tiles! Backtracking!" <<std::endl;
                     } else {
                         // End
-                        count = 0;
                         std::cout << "  Unsolvable state" << std::endl;
-                        return;
+                        break;
                     }
                 }
-
-                // Do one step and reduce count
-                step();
-                if (count > 0) {
-                    count --;
-                }
             }
+
+            return !mError;
         }
 
         // Place and propagate one tile manually

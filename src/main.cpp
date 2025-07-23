@@ -1,6 +1,7 @@
 #include <raylib.h>
 
 #include <lufuWFC.hpp>
+#include <chrono>
 
 #define RAYGUI_IMPLEMENTATION
 #include <raygui.h>
@@ -24,7 +25,7 @@ void drawGridLandTiles(const lufuWFC::Grid& grid){
 }
 
 void drawGridPathTiles(const lufuWFC::Grid& grid){
-    int size = 15;
+    int size = 8;
 
     for (size_t x=0; x<grid.mX; x++) {
         for (size_t y=0; y<grid.mY; y++) {
@@ -112,7 +113,7 @@ int main(void)
 
             DrawRectangleRec({screenWidth - 140, 0, 140, screenHeight}, {200,190,200, 200});
             if(GuiButton({screenWidth - 120, 30, 100, 30}, "Initialize")){
-                wfc.initialize(48, 48, 1, tileset);
+                wfc.initialize(64, 64, 0, tileset);
             }
 
             if(GuiButton({screenWidth - 120, 70, 100, 30}, "Solve")){
